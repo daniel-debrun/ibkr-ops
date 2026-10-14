@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="ibkr-ops: operational safety layer for Interactive Brokers, built on ib_async">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0D1117"/><stop offset="1" stop-color="#161B22"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="1279" height="319" rx="16" fill="url(#g)" stroke="#30363D"/>
+  <!-- shield mark -->
+  <g transform="translate(72 84)">
+    <path d="M60 0 L116 22 V70 C116 112 90 140 60 152 C30 140 4 112 4 70 V22 Z" fill="#0F2A2A" stroke="#2DD4BF" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M34 76 L53 95 L88 56" fill="none" stroke="#2DD4BF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- wordmark -->
+  <text x="236" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="76" font-weight="700" fill="#E6EDF3" letter-spacing="-1">ibkr-ops</text>
+  <text x="240" y="196" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="26" fill="#8B949E">Operational safety layer for Interactive Brokers</text>
+  <!-- feature pills -->
+  <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2DD4BF">
+    <rect x="240" y="226" width="128" height="34" rx="17" fill="#0F2A2A" stroke="#2DD4BF" stroke-opacity="0.55"/>
+    <text x="304" y="249" text-anchor="middle">Order gates</text>
+    <rect x="380" y="226" width="150" height="34" rx="17" fill="#0F2A2A" stroke="#2DD4BF" stroke-opacity="0.55"/>
+    <text x="455" y="249" text-anchor="middle">Request pacing</text>
+    <rect x="542" y="226" width="112" height="34" rx="17" fill="#0F2A2A" stroke="#2DD4BF" stroke-opacity="0.55"/>
+    <text x="598" y="249" text-anchor="middle">Job guard</text>
+    <rect x="666" y="226" width="124" height="34" rx="17" fill="#0F2A2A" stroke="#2DD4BF" stroke-opacity="0.55"/>
+    <text x="728" y="249" text-anchor="middle">Heartbeats</text>
+  </g>
+  <!-- layer stack -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="17" text-anchor="middle">
+    <line x1="1060" y1="62" x2="1060" y2="262" stroke="#484F58" stroke-width="2" stroke-dasharray="4 6"/>
+    <rect x="950" y="40" width="220" height="44" rx="10" fill="#0D1117" stroke="#484F58"/>
+    <text x="1060" y="68" fill="#E6EDF3">scheduled job</text>
+    <rect x="950" y="104" width="220" height="44" rx="10" fill="#0F2A2A" stroke="#2DD4BF" stroke-width="2"/>
+    <text x="1060" y="132" fill="#2DD4BF" font-weight="700">ibkr-ops</text>
+    <rect x="950" y="168" width="220" height="44" rx="10" fill="#0D1117" stroke="#484F58"/>
+    <text x="1060" y="196" fill="#E6EDF3">ib_async</text>
+    <rect x="950" y="232" width="220" height="44" rx="10" fill="#0D1117" stroke="#484F58"/>
+    <text x="1060" y="260" fill="#E6EDF3">IB Gateway</text>
+  </g>
+</svg>

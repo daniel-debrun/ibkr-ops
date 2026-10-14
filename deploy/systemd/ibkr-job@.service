@@ -1,0 +1,12 @@
+# A job run by a timer. Install: cp to ~/.config/systemd/user/, then `systemctl --user daemon-reload`.
+# Instance name = the Python module to run, e.g. ibkr-job@myjobs.quotes.service
+[Unit]
+Description=ibkr-ops job %i
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/ibkr-ops
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/timeout -k 30 2400 /usr/bin/python3 -m %i
+# journald adds timestamps; read with: journalctl --user -u ibkr-job@myjobs.quotes

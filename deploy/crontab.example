@@ -1,0 +1,15 @@
+# Example crontab for ibkr-ops jobs. Times are the host's local time (US Eastern in this example), since
+# Debian/Ubuntu cron ignores CRON_TZ. Each job declares its intended UTC window in code, so schedule errors
+# and DST shifts produce exit 6 (misfired) and an alert.
+SHELL=/bin/bash
+IBKR_OPS_ALERT_CMD="notify-send ibkr-ops"
+# notify-send from cron needs the desktop session: DISPLAY=:0 and DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/<uid>/bus
+
+# read-only quotes, 15:50 local on weekdays (job uses trading_day=True and window=("19:50Z", 70) to span DST)
+50 15 * * 1-5  $HOME/ibkr-ops/scripts/cron-run.sh 2400 python3 -m myjobs.quotes
+
+# heartbeat check: hourly, alert on any job that is stale, failed, misfired or has never run
+7 * * * *      $HOME/ibkr-ops/scripts/cron-run.sh 120 python3 -m ibkr_ops heartbeats myjobs.quotes=26 --alert
+
+# pre-market Gateway check, so an unauthenticated Gateway is detected before scheduled jobs run
+30 8 * * 1-5   $HOME/ibkr-ops/scripts/cron-run.sh 60 python3 -m ibkr_ops probe --handshake || notify-send "IB Gateway is down: log in"

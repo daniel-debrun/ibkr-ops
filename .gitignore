@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+# never commit broker state, keys, logs or exports
+state/
+*.log
+*.jsonl
+*.key
+*.sig.json
+.env
+
+# private, machine-specific notes
+NOTES-local.md

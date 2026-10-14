@@ -1,0 +1,19 @@
+# Reference unit: keeps IB Gateway running via deploy/gateway_keepalive.py (ib_async IBC + Watchdog).
+# Prerequisites: IBC installed, credentials in ~/ibc/config.ini (chmod 600). Installation:
+#   cp ibgateway.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+#   systemctl --user enable --now ibgateway.service && loginctl enable-linger $USER
+[Unit]
+Description=IB Gateway kept alive by ib_async Watchdog
+After=network-online.target graphical-session.target
+
+[Service]
+WorkingDirectory=%h/ibkr-ops
+Environment=PYTHONUNBUFFERED=1 IBKR_TRADING_MODE=paper IBKR_GATEWAY_VERSION=1045
+# The Gateway is a GUI application: use the desktop display, or run Xvfb and set DISPLAY accordingly.
+Environment=DISPLAY=:0
+ExecStart=%h/ibkr-ops/.venv/bin/python deploy/gateway_keepalive.py
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=default.target

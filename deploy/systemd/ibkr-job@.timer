@@ -1,0 +1,14 @@
+# Unlike Debian cron, systemd timers take an explicit time zone. Persistent=true runs a missed slot at the
+# next boot (cron does not run jobs missed while the host is off). Copy per job, e.g.
+#   cp ibkr-job@.timer ~/.config/systemd/user/ibkr-job@myjobs.quotes.timer
+#   systemctl --user enable --now ibkr-job@myjobs.quotes.timer
+[Unit]
+Description=timer for ibkr-ops job %i
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 UTC
+Persistent=true
+RandomizedDelaySec=0
+
+[Install]
+WantedBy=timers.target
