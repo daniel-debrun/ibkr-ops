@@ -1,6 +1,7 @@
 """The cron guard: exit codes, heartbeats, lock, window, alerts."""
 import fcntl
 import json
+import logging
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -59,6 +60,24 @@ def test_trading_day_skip_and_refusal(alerts):
         raise cron.Refused("kill switch")
     assert cron.run("j-ref", refuse, require_gateway=False, now=AT) == cron.REFUSED
     assert not alerts                            # skips and refusals are expected outcomes
+
+
+def test_trading_day_uses_the_new_york_date(alerts):
+    friday_evening_et = datetime(2026, 10, 17, 1, 0, tzinfo=timezone.utc)       # Fri 21:00 ET, Sat in UTC
+    assert cron.run("j-fri", lambda job: None, require_gateway=False, trading_day=True,
+                    now=friday_evening_et) == cron.OK
+    sunday_evening_et = datetime(2026, 10, 19, 1, 0, tzinfo=timezone.utc)       # Sun 21:00 ET, Mon in UTC
+    assert cron.run("j-sun", lambda job: None, require_gateway=False, trading_day=True,
+                    now=sunday_evening_et) == cron.SKIPPED
+
+
+def test_account_ids_are_redacted_in_job_logs(capsys):
+    cron.setup_logging("j-log")
+    logging.getLogger("ib_async.wrapper").info("position: Position(account='%s', position=13.0)", "DUP000000")
+    logging.getLogger("x").warning("live U1234567 and paper DU7654321; order 1234567 stays")
+    err = capsys.readouterr().err
+    assert "DUP000000" not in err and "DUP******" in err
+    assert "U1234567" not in err and "U*******" in err and "DU*******" in err and "order 1234567 stays" in err
 
 
 def test_overlapping_run_is_skipped(alerts):
