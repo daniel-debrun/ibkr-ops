@@ -9,10 +9,13 @@ exit codes, heartbeats and alerting.
     sys.exit(cron.run("ib-quotes", main, window=("04:30Z", 30)))
 
 * **Lock**: a non-blocking flock per job name; an overlapping run exits 5.
-* **Logging**: every line is timestamped in UTC.
+* **Logging**: every line is timestamped in UTC; IB account ids in any record (including ib_async's own INFO
+  lines, which print positions with the full account) are redacted.
 * **Gateway pre-flight**: a closed API port exits 3 before any work is attempted.
 * **Schedule window**: Debian/Ubuntu cron ignores ``CRON_TZ`` and fires in local time. A job given its
   intended UTC window exits 6 (misfired) and alerts when started outside it.
+* **Trading day**: judged on the New York calendar date, so a US job running after 20:00 ET (already the next
+  day in UTC) checks the right session.
 * **Steps**: a failing step does not stop subsequent steps, but the run exits 4.
 * **Heartbeat**: each run writes ``<state>/heartbeat/<job>.json``. Runs that never start leave no record, so
   ``check_heartbeats`` must be scheduled independently to detect them.
@@ -23,6 +26,7 @@ import fcntl
 import json
 import logging
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -32,10 +36,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
+from zoneinfo import ZoneInfo
 
 from . import probe, tradingdays
 from .client_ids import state_dir
-from .config import Endpoint
+from .config import Endpoint, redact
 from .errors import GatewayDown
 from .io import atomic_write_text
 
@@ -65,9 +70,27 @@ class _UTCFormatter(logging.Formatter):
         return time.strftime("%Y-%m-%dT%H:%M:%SZ", self.converter(record.created))
 
 
+#: IB account ids: paper DU/DF (sometimes with a letter, e.g. DUP), live U, advisor F, I
+ACCOUNT_RE = re.compile(r"\b(?:D[UF][A-Z]?|U|F|I)\d{5,9}\b")
+NEW_YORK = ZoneInfo("America/New_York")
+
+
+class RedactAccounts(logging.Filter):
+    """Replace IB account ids in a record's final message with ``redact`` (``DU1234567`` -> ``DU*******``).
+    ib_async logs positions and account values at INFO with the full account id."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        red = ACCOUNT_RE.sub(lambda m: redact(m.group(0)), msg)
+        if red != msg:
+            record.msg, record.args = red, None
+        return True
+
+
 def setup_logging(job: str, level=logging.INFO) -> None:
     h = logging.StreamHandler(sys.stderr)
     h.setFormatter(_UTCFormatter(f"%(asctime)s [{job}] %(levelname)s %(message)s"))
+    h.addFilter(RedactAccounts())
     root = logging.getLogger()
     root.handlers[:] = [h]
     root.setLevel(level)
@@ -168,7 +191,7 @@ def _guarded(job, main, require_gateway, endpoint, window, trading_day, now, ale
         if not in_window(now, w):
             raise Misfired(f"fired at {now.astimezone(timezone.utc):%H:%MZ}, outside its window {window[0]}±"
                        f"{window[1]:g}min (is cron running in local time? Debian cron ignores CRON_TZ)")
-        if trading_day and not tradingdays.is_trading_day(now.astimezone(timezone.utc).date()):
+        if trading_day and not tradingdays.is_trading_day(now.astimezone(NEW_YORK).date()):
             raise Skip("not a US trading day")
         if require_gateway:
             ep = endpoint or Endpoint.resolve()
